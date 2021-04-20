@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 24-Mar-2021 11:00:23
+% Last Modified by GUIDE v2.5 26-Mar-2021 08:07:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,6 +61,125 @@ guidata(hObject, handles);
 % UIWAIT makes gui wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+% variable declarations
+global orginalTrack;
+global orginalTrackLoaded;
+global orginalTrackPaused;
+global orginalTrackData;
+global orginalTrackSound;
+
+global addedTrack;
+global addedTrackLoaded;
+global addedTrackPaused;
+global addedTrackData;
+global addedTrackSound;
+
+global sampleRate;
+global speedTrack;
+
+% assiging values to declared variable
+orginalTrack = false;
+orginalTrackLoaded = false;
+orginalTrackPaused = false;
+orginalTrackData = 0;
+addedTrack = false;
+addedTrackLoaded = false;
+addedTrackPaused = false;
+addedTrackData = 0;
+
+sampleRate = 48000;
+speedTrack = false;
+
+% function to import the track
+function importTrack(handles, track)
+global sampleRate;
+global speedTrack;
+
+%opens the file explorer to brower the track
+[trackName, trackPath] = uigetfile( ...
+{'*.wav;*.mp3',...
+'Audio Files (*.wav,*.mp3)'; ...
+'*wav', 'WAV Files(*.wav)';...
+'*mp3', 'MP3 Files(*.mp3)';},...
+'Select an audio file');
+
+if trackName
+    [snd, FS] = audioread(fullfile(trackPath, trackName));
+    
+    if track == 1
+        global orginalTrackData;
+        global orginalTrackSound;
+        global orginalTrack;
+        global orginalTrackPaused;
+        global orginalTrackLoaded;
+        
+        orginalTrackLoaded = true;
+        orginalTrack = false;
+        orginalTrackPaused = false;
+        
+        if FS ~= sampleRate
+            [X, Y] = rat(sampleRate/FS);
+            orginalTrackData = resample(snd, X, Y);
+        else
+            orginalTrackData = snd;
+        end
+        orginalTrackSound = audioplayer(orginalTrackData, sampleRate);
+    end
+end
+        
+        
+
+
+% function to play a track
+function playTrack(track)
+global orginalTrack;
+global orginalTrackLoaded;
+global orginalTrackSound;
+global orginalTrackPaused;
+
+global addedTrack;
+global addedTrackLoaded;
+global addedTrackSound;
+global addedTrackPaused;
+
+if track == 1
+    if ~orginalTrack && orginalTrackLoaded
+        resume(orginalTrackSound);
+        orginalTrack = true;
+        orginalTrackPaused = false;
+    end
+elseif track == 2
+    if ~addedTrack && addedTrackLoaded
+        resume(addedTrackSound);
+        addedTrack = true;
+        addedTrackPaused = false;
+    end
+end
+
+% function to puase the track
+function pauseTrack(track)
+if track ==1
+    global orginalTrackSound;
+    global orginalTrack;
+    global orginalTrackPaused;
+    
+    orginalTrack = false;
+    orginalTrackPaused = true;
+    pause(orginalTrackSound);
+else
+    global addedTrackSound;
+    global addedTrack;
+    global addedTrackPaused;
+    
+    addedTrack = false;
+    addedTrackPaused = true;
+    pause(addedTrackSound);
+end
+    
+
+
+
+
 
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(hObject, eventdata, handles) 
@@ -74,8 +193,8 @@ varargout{1} = handles.output;
 
 
 % --- Executes on slider movement.
-function slider1_Callback(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
+function originalSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to originalSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -84,8 +203,8 @@ function slider1_Callback(hObject, eventdata, handles)
 axesLabels(hObject);
 
 % --- Executes during object creation, after setting all properties.
-function slider1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider1 (see GCBO)
+function originalSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to originalSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -96,8 +215,8 @@ end
 
 
 % --- Executes on slider movement.
-function slider2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
+function addedSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to addedSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -106,8 +225,8 @@ function slider2_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function slider2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
+function addedSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to addedSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -117,52 +236,53 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 
-% --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
+% --- Executes on button press in uploadOrginal.
+function uploadOrginal_Callback(hObject, eventdata, handles)
+% hObject    handle to uploadOrginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-loadFile(handles,1);
+importTrack(handles, 1);
 
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in uploadAdded.
+function uploadAdded_Callback(hObject, eventdata, handles)
+% hObject    handle to uploadAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-loadFile(handles,2);
+importTrack(handles, 2);
 
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+
+% --- Executes on button press in playOriginal.
+function playOriginal_Callback(hObject, eventdata, handles)
+% hObject    handle to playOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+playTrack(1);
 
-
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton5.
-function pushbutton5_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton5 (see GCBO)
+% --- Executes on button press in stopOriginal.
+function stopOriginal_Callback(hObject, eventdata, handles)
+% hObject    handle to stopOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in pushbutton6.
-function pushbutton6_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton6 (see GCBO)
+% --- Executes on button press in pauseOriginal.
+function pauseOriginal_Callback(hObject, eventdata, handles)
+% hObject    handle to pauseOriginal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+pauseTrack(1);
+
+% --- Executes on button press in saveTrack.
+function saveTrack_Callback(hObject, eventdata, handles)
+% hObject    handle to saveTrack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in pushbutton7.
-function pushbutton7_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton7 (see GCBO)
+% --- Executes on button press in resetSpeed.
+function resetSpeed_Callback(hObject, eventdata, handles)
+% hObject    handle to resetSpeed (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -189,26 +309,26 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 
-% --- Executes on button press in pushbutton8.
-function pushbutton8_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton8 (see GCBO)
+% --- Executes on button press in playAdded.
+function playAdded_Callback(hObject, eventdata, handles)
+% hObject    handle to playAdded (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+playTrack(2);
+
+% --- Executes on button press in stopAdded.
+function stopAdded_Callback(hObject, eventdata, handles)
+% hObject    handle to stopAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in pushbutton9.
-function pushbutton9_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton9 (see GCBO)
+% --- Executes on button press in pauseAdded.
+function pauseAdded_Callback(hObject, eventdata, handles)
+% hObject    handle to pauseAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in pushbutton10.
-function pushbutton10_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton10 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
+pauseTrack(2)
 
 % --- Executes on button press in checkbox2.
 function checkbox2_Callback(hObject, eventdata, handles)
@@ -230,7 +350,7 @@ function slider4_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function slider4_CreateFcn(hObject, eventdata, handles)
+function slider4_CreateFcn(hObject, ~, handles)
 % hObject    handle to slider4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -241,9 +361,9 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 
-% --- Executes on button press in pushbutton11.
-function pushbutton11_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton11 (see GCBO)
+% --- Executes on button press in insertTrack.
+function insertTrack_Callback(hObject, eventdata, handles)
+% hObject    handle to insertTrack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -255,3 +375,9 @@ function checkbox1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of checkbox1
+
+
+
+    
+
+
