@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 26-Mar-2021 08:07:16
+% Last Modified by GUIDE v2.5 21-Apr-2021 08:25:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -124,11 +124,28 @@ if trackName
             orginalTrackData = snd;
         end
         orginalTrackSound = audioplayer(orginalTrackData, sampleRate);
+        
+    elseif track ==2
+        global addedTrackData;
+        global addedTrackSound;
+        global addedTrack;
+        global addedTrackPaused;
+        global addedTrackLoaded;
+        
+        addedTrackLoaded = true;
+        addedTrack = false;
+        addedTrackPaused = false;
+        
+        if FS ~= sampleRate
+            [X, Y] = rat(sampleRate/FS);
+            addedTrackData = resample(snd, X, Y);
+        else
+            addedTrackData = snd;
+        end
+        addedTrackSound = audioplayer(addedTrackData, sampleRate);
     end
 end
-        
-        
-
+  
 
 % function to play a track
 function playTrack(track)
@@ -166,7 +183,7 @@ if track ==1
     orginalTrack = false;
     orginalTrackPaused = true;
     pause(orginalTrackSound);
-else
+elseif track == 2
     global addedTrackSound;
     global addedTrack;
     global addedTrackPaused;
@@ -174,13 +191,38 @@ else
     addedTrack = false;
     addedTrackPaused = true;
     pause(addedTrackSound);
+
 end
+
+%function to stop the playing tarck
+function stopTrack(handles, track)
+if track == 1
+    global orginalTrackLoaded;
+    global orginalTrackSound;
+    global originalTrack;
+    global originalTrackPaused;
+        
+    if orginalTrackLoaded
+        originalTrack = false;
+        originalTrackPaused = false;
+        stop(orginalTrackSound);
+    end
     
-
-
-
-
-
+elseif track == 2
+    global addedTrackLoaded;
+    global addedTrackSound;
+    global addedTrack;
+    global addedTrackPaused;
+        
+    if addedTrackLoaded
+        addedTrack = false;
+        addedTrackPaused = false;
+        stop(addedTrackSound);
+    end
+     
+end
+        
+    
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -241,7 +283,7 @@ function uploadOrginal_Callback(hObject, eventdata, handles)
 % hObject    handle to uploadOrginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-importTrack(handles, 1);
+  importTrack(handles, 1);
 
 
 % --- Executes on button press in uploadAdded.
@@ -249,7 +291,7 @@ function uploadAdded_Callback(hObject, eventdata, handles)
 % hObject    handle to uploadAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-importTrack(handles, 2);
+  importTrack(handles, 2);
 
 
 % --- Executes on button press in playOriginal.
@@ -257,21 +299,21 @@ function playOriginal_Callback(hObject, eventdata, handles)
 % hObject    handle to playOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-playTrack(1);
+  playTrack(1);
 
 % --- Executes on button press in stopOriginal.
 function stopOriginal_Callback(hObject, eventdata, handles)
 % hObject    handle to stopOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+  stopTrack(handles, 1);
 
 % --- Executes on button press in pauseOriginal.
 function pauseOriginal_Callback(hObject, eventdata, handles)
 % hObject    handle to pauseOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-pauseTrack(1);
+  pauseTrack(1);
 
 % --- Executes on button press in saveTrack.
 function saveTrack_Callback(hObject, eventdata, handles)
@@ -314,13 +356,15 @@ function playAdded_Callback(hObject, eventdata, handles)
 % hObject    handle to playAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-playTrack(2);
+ playTrack(2);
+
 
 % --- Executes on button press in stopAdded.
 function stopAdded_Callback(hObject, eventdata, handles)
 % hObject    handle to stopAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+stopTrack(handles, 2);
 
 
 % --- Executes on button press in pauseAdded.
@@ -328,7 +372,7 @@ function pauseAdded_Callback(hObject, eventdata, handles)
 % hObject    handle to pauseAdded (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-pauseTrack(2)
+pauseTrack(2);
 
 % --- Executes on button press in checkbox2.
 function checkbox2_Callback(hObject, eventdata, handles)
@@ -379,5 +423,3 @@ function checkbox1_Callback(hObject, eventdata, handles)
 
 
     
-
-
