@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 21-Apr-2021 08:25:34
+% Last Modified by GUIDE v2.5 21-Apr-2021 21:55:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -124,6 +124,10 @@ if trackName
             orginalTrackData = snd;
         end
         orginalTrackSound = audioplayer(orginalTrackData, sampleRate);
+        set(orginalTrackSound, 'TimerFcn', {@updateTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
+        set(handles.orginalTrackInvert, 'Value', 0);
+        visualiation(orginalTrackData, sampleRate,handles, track);
+
         
     elseif track ==2
         global addedTrackData;
@@ -143,6 +147,9 @@ if trackName
             addedTrackData = snd;
         end
         addedTrackSound = audioplayer(addedTrackData, sampleRate);
+        set(addedTrackSound, 'TimerFcn', {@updateTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
+        set(handles.addedTrackInvert, 'Value', 0);
+        visualiation(addedTrackData, sampleRate,handles, track);
     end
 end
   
@@ -221,7 +228,49 @@ elseif track == 2
     end
      
 end
-        
+
+function endTrack(~,~,track, handles)
+global orginalTrack;
+global addedTrack;
+
+if track == 1
+    if orginalTrack == true
+        orginalTrack = false;
+        set(handles.orginalTrackSlider, 'Value', get(handles.orginalTrackSlider,'Min'));
+        if get(handles.orginalTrackLoop, 'Value') == true;
+            playTrack(1);
+        end
+    end
+elseif track == 2
+        if addedTrack == true
+            addedTrack = false;
+            set(handles.addedTrackSlider, 'Value', get(handles.addedTrackSlider,'Min'));
+            if get(handles.addedTrackLoop, 'Value') == true;
+                playTrack(2);
+            end
+        end
+end
+
+function visualiation(snd, FS, handles, track)
+timer = round((1/FS) * length(snd),1);
+if track == 1
+    axis = handles.orginalAxes;
+    slider = handles.orginalTrackSlider;
+    set(handles.insertTrackSlider, 'Max', timer);
+    set(handles.insertTrackSlider, 'Value', 0);
+    set(handles.insertTrackSlider, 'Min', 0);
+    
+elseif track == 2
+    axis = handles.addedAxes;
+    slider = handles.addedTrackSlider;
+end
+time = linspace(0, timer, length(snd));
+plot(axis, time, snd);
+set(slider, 'Max', timer);
+set(slider, 'Value', 0);
+set(slider, 'Min', 0);
+
+
     
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(hObject, eventdata, handles) 
@@ -235,18 +284,18 @@ varargout{1} = handles.output;
 
 
 % --- Executes on slider movement.
-function originalSlider_Callback(hObject, eventdata, handles)
-% hObject    handle to originalSlider (see GCBO)
+function orginalTrackSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to orginalTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-axesLabels(hObject);
+
 
 % --- Executes during object creation, after setting all properties.
-function originalSlider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to originalSlider (see GCBO)
+function orginalTrackSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to orginalTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -257,8 +306,8 @@ end
 
 
 % --- Executes on slider movement.
-function addedSlider_Callback(hObject, eventdata, handles)
-% hObject    handle to addedSlider (see GCBO)
+function addedTrackSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to addedTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -267,8 +316,8 @@ function addedSlider_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function addedSlider_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to addedSlider (see GCBO)
+function addedTrackSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to addedTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -374,18 +423,18 @@ function pauseAdded_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 pauseTrack(2);
 
-% --- Executes on button press in checkbox2.
-function checkbox2_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox2 (see GCBO)
+% --- Executes on button press in addedTrackLoop.
+function addedTrackLoop_Callback(hObject, eventdata, handles)
+% hObject    handle to addedTrackLoop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkbox2
+% Hint: get(hObject,'Value') returns toggle state of addedTrackLoop
 
 
 % --- Executes on slider movement.
-function slider4_Callback(hObject, eventdata, handles)
-% hObject    handle to slider4 (see GCBO)
+function insertTrackSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to insertTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -394,8 +443,8 @@ function slider4_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function slider4_CreateFcn(hObject, ~, handles)
-% hObject    handle to slider4 (see GCBO)
+function insertTrackSlider_CreateFcn(hObject, ~, handles)
+% hObject    handle to insertTrackSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -412,14 +461,28 @@ function insertTrack_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in checkbox1.
-function checkbox1_Callback(hObject, eventdata, handles)
-% hObject    handle to checkbox1 (see GCBO)
+% --- Executes on button press in orginalTrackLoop.
+function orginalTrackLoop_Callback(hObject, eventdata, handles)
+% hObject    handle to orginalTrackLoop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkbox1
+% Hint: get(hObject,'Value') returns toggle state of orginalTrackLoop
 
 
+% --- Executes on button press in addedTrackInvert.
+function addedTrackInvert_Callback(hObject, eventdata, handles)
+% hObject    handle to addedTrackInvert (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
-    
+% Hint: get(hObject,'Value') returns toggle state of addedTrackInvert
+
+
+% --- Executes on button press in orginalTrackInvert.
+function orginalTrackInvert_Callback(hObject, eventdata, handles)
+% hObject    handle to orginalTrackInvert (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of orginalTrackInvert
