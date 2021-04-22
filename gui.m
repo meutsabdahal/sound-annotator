@@ -269,7 +269,6 @@ function visualiation(snd, FS, handles, track)
     set(slider, 'Value', 0);
     set(slider, 'Min', 0);
 
-
 function trackTimer(~,~,track, handles)
     
     global sampleRate;
@@ -303,6 +302,37 @@ function trackTimer(~,~,track, handles)
         visualiation(snd, sampleRate, hanldes, track);
     end
     
+function invertTrack(handles, track)
+    global orginalTrackLoaded;
+    global addedTrackLoaded;
+    global sampleRate;
+    global speedTrack;
+    
+    stopTrack(handles, track);
+    
+    if track == 1 && orginalTrackLoaded
+        global orginalTrackData;
+        global orginalTrackSound;
+        
+        orginalTrackData = flipud(orginalTrackData);
+        orginalTrackSound = audioplayer(orginalTrackData, sampleRate);
+        set(orginalTrackSound, 'TimerFcn',{@trackTimer, track, handles}, 'TimerPeriod', 0.1, 'StopFcn',{@endTrack, track, handles});
+        set(handles.orginalTrackTimer, 'String', round(handles.orginalTrackTimer.Value, 1));
+        visualiation(orginalTrackData, sampleRate, handles, 1);
+        
+    elseif track == 2 && addedTrackLoaded
+        global addedTrackData;
+        global addedTrackSound;
+        
+        addedTrackData = flipud(addedTrackData);
+        addedTrackSound = audioplayer(addedTrackData, sampleRate);
+        set(addedTrackSound, 'TimerFcn',{@trackTimer, track, handles}, 'TimerPeriod', 0.1, 'StopFcn',{@endTrack, track, handles});
+        set(handles.addedTrackTimer, 'String', round(handles.orginalTrackTimer.Value, 1));
+        visualiation(addedTrackData, sampleRate, handles, 2);
+    end
+    if (speedTrack)
+        resetSpeed(handles);
+    end
     
     
 % --- Outputs from this function are returned to the command line.
@@ -509,7 +539,7 @@ function addedTrackInvert_Callback(hObject, eventdata, handles)
 % hObject    handle to addedTrackInvert (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+invertTrack(handles, 2);
 % Hint: get(hObject,'Value') returns toggle state of addedTrackInvert
 
 
@@ -518,7 +548,7 @@ function orginalTrackInvert_Callback(hObject, eventdata, handles)
 % hObject    handle to orginalTrackInvert (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+invertTrack(handles, 1);
 % Hint: get(hObject,'Value') returns toggle state of orginalTrackInvert
 
 
