@@ -125,7 +125,7 @@ function importTrack(handles, track)
                 orginalTrackData = snd;
             end
             orginalTrackSound = audioplayer(orginalTrackData, sampleRate);
-            set(orginalTrackSound, 'TimerFcn', {@trackTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
+            set(orginalTrackSound, 'TimerFcn', {@updateTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
             set(handles.orginalTrackInvert, 'Value', 0);
             visualiation(orginalTrackData, sampleRate,handles, track);
 
@@ -147,7 +147,7 @@ function importTrack(handles, track)
                 addedTrackData = snd;
             end
             addedTrackSound = audioplayer(addedTrackData, sampleRate);
-            set(addedTrackSound, 'TimerFcn', {@trackTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
+            set(addedTrackSound, 'TimerFcn', {@updateTimer, track, handles}, 'TimerPeriod',0.1,'Stop',{@endTrack, track, handles});
             set(handles.addedTrackInvert, 'Value', 0);
             visualiation(addedTrackData, sampleRate,handles, track);
         end
@@ -268,42 +268,11 @@ function visualiation(snd, FS, handles, track)
     set(slider, 'Max', timer);
     set(slider, 'Value', 0);
     set(slider, 'Min', 0);
-
+end
 
 function trackTimer(~,~,track, handles)
     
-    global sampleRate;
-    if track == 1
-        global orginalTrackSound;
-        global orginalTrackData;
-        
-        slider = handles.orginalTrackSlider;
-        trackTimer = handles.orginalTrackTimer;
-        timer = round(orginalTrackSound.CurrentSample/sampleRate, 1);
-        snd = orginalTrackData;
-        
-    elseif track == 2
-        global addedTrackSound;
-        global addedTrackData;
-        
-        slider = handles.addedTrackSlider;
-        trackTimer = handles.addedTrackTimer;
-        timer = round(addedTrackSound.CurrentSample/sampleRate, 1);
-        snd = addedTrackData;
-    end
-    finalTimer = get(slider,'Max');
-    
-    if timer < finalTimer
-        set(slider, 'Value', timer);
-        set(trackTimer, 'String', timer);
-        
-    else
-        set(slider, 'Value', finalTimer);
-        set(trackTimer, 'String', finalTimer); 
-        visualiation(snd, sampleRate, hanldes, track);
-    end
-    
-    
+    global samplerate
     
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(hObject, eventdata, handles) 
