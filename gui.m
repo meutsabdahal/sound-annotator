@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 21-Apr-2021 21:55:21
+% Last Modified by GUIDE v2.5 22-Apr-2021 09:33:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -494,6 +494,7 @@ function insertTrack_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+
 % --- Executes on button press in orginalTrackLoop.
 function orginalTrackLoop_Callback(hObject, eventdata, handles)
 % hObject    handle to orginalTrackLoop (see GCBO)
@@ -519,3 +520,11 @@ function orginalTrackInvert_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of orginalTrackInvert
+
+
+% --- Executes on button press in close.
+function close_Callback(hObject, eventdata, handles)
+% hObject    handle to close (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+closereq();
