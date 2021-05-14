@@ -22,7 +22,7 @@ function varargout = gui(varargin)
 
 % Edit the above text to modify the response to help gui
 
-% Last Modified by GUIDE v2.5 22-Apr-2021 09:33:48
+% Last Modified by GUIDE v2.5 01-May-2021 21:34:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -299,7 +299,7 @@ function trackTimer(~,~,track, handles)
     else
         set(slider, 'Value', finalTimer);
         set(trackTimer, 'String', finalTimer); 
-        visualiation(snd, sampleRate, hanldes, track);
+        visualiation(snd, sampleRate, handles, track);
     end
     
 function invertTrack(handles, track)
@@ -334,6 +334,97 @@ function invertTrack(handles, track)
         resetSpeed(handles);
     end
     
+function changeTrackSpeed(handles, multiplier)
+    global sampleRate;
+    global orginalTrackData;
+    global addedTrackData;
+    global orginalTrackSound;
+    global addedTrackSound;
+    global orginalTrack;
+    global addedTrack;
+    global orginalTrackLoaded;
+    global addedTrackLoaded;
+    global speedTrack;
+    speedTrack = true;
+    
+    orginalTrackResume = orginalTrack;
+    addedTrackResume = addedTrack;
+    
+    newSpeed = sampleRate * multiplier;
+    
+    if(orginalTrackLoaded)
+        orginalTrackSound = audioplayer(orginalTrackData, newSpeed);
+        set(orginalTrackSound, 'TimerFcn',{@trackTimer, 1, handles}, 'TimerPeriod', 0.1, 'StopFcn',{@endTrack, 1, handles});
+        stopTrack(handles, 1);
+        if(orginalTrackResume)
+            playTrack(1);
+        end
+    end
+    
+    if(addedTrackLoaded)
+        addedTrackSound = audioplayer(addedTrackData, newSpeed);
+        set(orginalTrackSound, 'TimerFcn',{@trackTimer, 2, handles}, 'TimerPeriod', 0.1, 'StopFcn',{@endTrack, 2, handles});
+        stopTrack(handles, 2);
+        if(addedTrackResume)
+            playTrack(2);
+        end
+    end
+
+%function resetTrackSpeed
+ 
+function mergeTrack(handles)
+    global orginalTrackLoaded;
+    global orginalTrackSound;
+    global orginalTrackData;
+    global addedTrackLoaded;
+    global addedTrackSound;
+    global addedTrackData;
+    
+    if orginalTrackLoaded && addedTrackLoaded
+        if get(addedTrackSound, 'NumberOfChannels') == 1
+            addedTrackDataTemp = [addedTrackData  addedTrackData];
+        else
+            addedTrackDataTemp = addedTrackData;
+        end
+        
+        if get(orginalTrackSound, 'NumberOfChannels') == 1
+            orginalTrackData = [orginalTrackData  orginalTrackData];
+        end
+        
+        stopTrack(handles, 1);
+        stopTrack(handles, 2);
+        
+        orginalSnd = get(orginalTrackSound, 'TotalSamples');
+        orginalFS = get(orginalTrackSound, 'SampleRate');
+        
+        addedSnd = get(addedTrackSound, 'TotalSamples');
+        
+        insertTimer = round(get(handles.insertTrackSlider, 'Value')) * orginalFS;
+        
+        if(addedSnd + insertTimer) > orginalSnd
+            insert = addedSnd + insertTimer - orginalSnd;
+            zeroMatrix = zeros(insert, 2);
+            orginalTrackData = [orginalTrackData ; zeroMatrix];
+        end
+        
+        preInsert = insertTimer;
+        preZeroMatrix = zeros(preInsert, 2);
+        
+        if(addedSnd + insertTimer) < orginalSnd
+            postInsert = orginalSnd - insertTimer - addedSnd;
+            postZeroMatrix = zeros(postInsert, 2);
+            added = [preZeroMatrix ; addedTrackDataTemp; postZeroMatrix];
+        else
+            added = [preZeroMatrix ; addedTrackDataTemp];
+        end
+        
+        orginalTrackData = orginalTrackData + added;
+        orginalTrackSound = audioplayer(orginalTrackData, orginalFS);
+        set(orginalTrackSound, 'TimerFcn', {@trackTimer, 1, handles}, 'TimerPeriod', 0.1, 'StopFcn', {@endTrack, 1, handles});
+        visualiation(orginalTrackData, orginalFS, handles, 1);
+    end
+    
+        
     
 % --- Outputs from this function are returned to the command line.
 function varargout = gui_OutputFcn(hObject, eventdata, handles) 
@@ -388,7 +479,7 @@ function addedTrackSlider_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
-
+ 
 
 % --- Executes on button press in uploadOrginal.
 function uploadOrginal_Callback(hObject, eventdata, handles)
@@ -442,18 +533,19 @@ function resetSpeed_Callback(hObject, eventdata, handles)
 
 
 % --- Executes on slider movement.
-function slider3_Callback(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
+function trackSpeedSlider_Callback(hObject, eventdata, handles)
+% hObject    handle to trackSpeedSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+addlistener(handles.trackSpeedSlider, 'Value', 'PostSet', @(s,e) set(handles.speed, 'String', round(handles.trackSpeedSlider.Value, 1)));
+changeTrackSpeed(handles, get(handles.trackSpeedSlider, 'Value'));
 
 % --- Executes during object creation, after setting all properties.
-function slider3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
+function trackSpeedSlider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trackSpeedSlider (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -503,7 +595,7 @@ function insertTrackSlider_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
+addlistener(handles.insertTrackSlider, 'Value', 'PostSet', @(s,e) set(handles.insertTimer, 'String', round(handles.insertTrackSlider.Value, 1)));
 
 % --- Executes during object creation, after setting all properties.
 function insertTrackSlider_CreateFcn(hObject, ~, handles)
@@ -522,7 +614,7 @@ function insertTrack_Callback(hObject, eventdata, handles)
 % hObject    handle to insertTrack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+mergeTrack(handles);
 
 
 % --- Executes on button press in orginalTrackLoop.
