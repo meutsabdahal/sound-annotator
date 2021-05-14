@@ -432,24 +432,7 @@ function saveTrack()
     if orginalTrackLoaded
         pathDirectory = uigetdir('', 'Select the Path');
         
-        if pathDirectory
-            trackName = inputdlg('Enter Track Name', 'File Name', [1 50]);
-            
-            if length(trackName) == 1
-                directory = strcat(pathDirectory, '\', trackName, '.wav');
-                
-                if exist(directory{1}, 'file') == 2
-                    confirm = questdlg('Track Already Exist. Do you want to overwrite', 'Track Already Exist.', 'Yes', 'No');
-                    if strcmp(confirm, 'Yes')
-                        audiowrite(directory{1}, orginalTrackData, sampleRate);
-                    end
-                else
-                    audiowrite(directory{1}, orginalTrackData, sampleRate);
-                end
-            end
-        end
-    end
-                        
+        if 
     
     
     
@@ -550,7 +533,7 @@ function saveTrack_Callback(hObject, eventdata, handles)
 % hObject    handle to saveTrack (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-saveTrack();
+
 
 % --- Executes on button press in resetSpeed.
 function resetSpeed_Callback(hObject, eventdata, handles)
